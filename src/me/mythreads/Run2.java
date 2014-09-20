@@ -24,12 +24,12 @@ class Run2 implements Runnable {
     /**
      * This variable allows us pausing thread
      */
-    boolean work = true;
+    boolean work;
 
     /**
-     * Stops thread
+     * Pause thread
      */
-    public void stop() {
+    public void pause() {
         work = false;
     }
 
@@ -79,22 +79,36 @@ class Run2 implements Runnable {
      */
     @Override
     public void run() {
-        while (work) {
-            while (!queueToProcess.isEmpty()) {
-                try {
-                    work();
-                } catch (IOException e) {
-                    e.printStackTrace();
+        this.work = true;
+        do {
+            if (this.work) {
+                while (!queueToProcess.isEmpty()) {
+                    try {
+                        work();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-            if (!work) return;
-            while (queueToProcess.isEmpty()) {
+                while (queueToProcess.isEmpty()) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        return;
+                    }
+                }
+            } else {
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    return;
                 }
             }
-        }
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                return;
+            }
+        } while (true);
     }
 }

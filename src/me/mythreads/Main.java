@@ -25,7 +25,7 @@ public class Main {
      * @param args No arguments yet
      * @throws IOException
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         File dir = new File(args[0]);
         String mask = args[1].substring(1, args[1].length() - 1);
         String regex = args[2];
@@ -35,6 +35,7 @@ public class Main {
         System.out.println(mask);
         System.out.println("Input regular expression to search for:");
         System.out.println(regex);
+
         Queue<File> mainQ = new ConcurrentLinkedQueue<File>();
         Run1 R1 = new Run1(mask, dir, mainQ);
         Run2 R2 = new Run2(regex, mainQ);
@@ -47,16 +48,14 @@ public class Main {
         while (true) {
             switch (Command.valueOf(bufferedReader.readLine())) {
                 case END:
-                    R1.stop();
-                    R2.stop();
                     t1.interrupt();
                     t2.interrupt();
                     break M;
                 case STOP1:
-                    R1.stop();
+                    R1.pause();
                     break;
                 case STOP2:
-                    R2.stop();
+                    R2.pause();
                     break;
                 case RESUME1:
                     R1.resume();

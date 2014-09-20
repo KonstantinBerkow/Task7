@@ -38,12 +38,12 @@ class Run1 implements Runnable {
     /**
      * This variable allows us pausing thread
      */
-    boolean work = true;
+    boolean work;
 
     /**
-     * Stops thread
+     * Pause thread
      */
-    public void stop() {
+    public void pause() {
         work = false;
     }
 
@@ -82,41 +82,49 @@ class Run1 implements Runnable {
      */
     @Override
     public void run() {
-        while (work) {
-            if (!wasScanned) {
-                File[] files = workingDirectory.listFiles();
-                if (files == null) {
+        this.work = true;
+        do {
+            if (this.work) {
+                if (!wasScanned) {
+                    File[] files = workingDirectory.listFiles();
+                    if (files == null) {
+                        wasScanned = true;
+                    }
+                    for (File f : files) {
+                        if (Pattern.matches(fileMask, f.getName())) {
+                            queueToProcess.add(f);
+                            System.out.println(f.getAbsolutePath());
+                        }
+                    }
                     wasScanned = true;
-                    continue;
                 }
-                for (File f : files) {
-                    if (Pattern.matches(fileMask, f.getName())) {
-                        queueToProcess.add(f);
-                        System.out.println(f.getAbsolutePath());
+
+                for (WatchEvent<?> event : keySignaler.pollEvents()) {
+                    WatchEvent.Kind<?> kind = event.kind();
+                    if (kind == StandardWatchEventKinds.ENTRY_CREATE ||
+                            kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                        WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                        Path filename = ev.context();
+                        if (Pattern.matches(fileMask, filename.toString())) {
+                            queueToProcess.add(filename.toFile());
+                            System.out.println(filename.toFile().getAbsolutePath());
+                        }
                     }
                 }
-                wasScanned = true;
+                keySignaler.reset();
+            } else {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    return;
+                }
             }
 
-            for (WatchEvent<?> event : keySignaler.pollEvents()) {
-                WatchEvent.Kind<?> kind = event.kind();
-                if (kind == StandardWatchEventKinds.ENTRY_CREATE ||
-                        kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                    WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                    Path filename = ev.context();
-                    if (Pattern.matches(fileMask, filename.toString())) {
-                        queueToProcess.add(filename.toFile());
-                        System.out.println(filename.toFile().getAbsolutePath());
-                    }
-                }
-            }
-            keySignaler.reset();
-            if (!work) return;
             try {
-                Thread.sleep(10000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                return;
             }
-        }
+        } while (true);
     }
 }
