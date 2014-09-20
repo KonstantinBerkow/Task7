@@ -111,6 +111,7 @@ class Run1 implements Runnable {
                 }
             }
             keySignaler.reset();
+            if (!work) return;
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {

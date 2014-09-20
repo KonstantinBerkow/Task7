@@ -26,15 +26,15 @@ public class Main {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-
+        File dir = new File(args[0]);
+        String mask = args[1].substring(1, args[1].length() - 1);
+        String regex = args[2];
         System.out.println("Input destination folder:");
-        File dir = new File(bufferedReader.readLine());
+        System.out.println(dir.getAbsolutePath());
         System.out.println("Input mask:");
-        String mask = bufferedReader.readLine();
+        System.out.println(mask);
         System.out.println("Input regular expression to search for:");
-        String regex = bufferedReader.readLine();
-        File[] files = dir.listFiles();
+        System.out.println(regex);
         Queue<File> mainQ = new ConcurrentLinkedQueue<File>();
         Run1 R1 = new Run1(mask, dir, mainQ);
         Run2 R2 = new Run2(regex, mainQ);
@@ -42,6 +42,7 @@ public class Main {
         Thread t2 = new Thread(R2, "Second Thread");
         t1.start();
         t2.start();
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         M:
         while (true) {
             switch (Command.valueOf(bufferedReader.readLine())) {

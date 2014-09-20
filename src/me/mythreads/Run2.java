@@ -87,6 +87,7 @@ class Run2 implements Runnable {
                     e.printStackTrace();
                 }
             }
+            if (!work) return;
             while (queueToProcess.isEmpty()) {
                 try {
                     Thread.sleep(10000);
